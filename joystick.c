@@ -25,18 +25,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "joystick.h"
 
 static int joystick_fd = -1;
-
 int joystick_x_axis;
 int joystick_y_axis;
 int joystick_z_axis;
-bool fire_pressed = false;
-
-// true only if an event we are using is activated
-bool relevant = true;
 
 int open_joystick(char *joystick_device)
 {
@@ -115,54 +109,4 @@ void set_joystick_x_axis(int axis)
 }
 
 
-//#if 0
-/* a little test program */
-int main(int argc, char *argv[])
-{
-	int fd, rc;
-	int done = 0;
 
-	struct js_event jse;
-
-	fd = open_joystick(0);
-	if (fd < 0) {
-		printf("open failed.\n");
-		exit(1);
-	}
-
-	while (!done) {
-		rc = read_joystick_event(&jse);
-		usleep(1000);
-		if (rc == 1) {
-			//printf("Event: time %8u, value %8hd, type: %3u, axis/button: %u\n", 
-				//jse.time, jse.value, jse.type, jse.number);
-			if (jse.type == 2 && jse.number == 0) {
-				joystick_x_axis = jse.value;
-				relevant = true;
-			}
-			else if (jse.type == 2 && jse.number == 1) {
-				joystick_y_axis = jse.value;
-				relevant = true;
-			}
-			else if (jse.type == 2 && jse.number == 3) {
-				joystick_z_axis = jse.value;
-				relevant = true;
-			}
-			else if (jse.value == 1 && jse.type == 1 && jse.number == 0) {
-				fire_pressed = true;
-				relevant = true;
-			}
-			else if (jse.value == 0 && jse.type == 1 && jse.number == 0) {
-				fire_pressed = false;
-				relevant = true;
-			}
-			else
-				relevant = false;
-				
-			if (relevant)
-				printf("X: %8hd, Y: %8hd, Z: %8hd, Fire: %d\n",
-					joystick_x_axis, joystick_y_axis, joystick_z_axis, fire_pressed);
-		}
-	}
-}
-//#endif

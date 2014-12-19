@@ -28,9 +28,6 @@
 #define JS_EVENT_AXIS           0x02    /* joystick moved */
 #define JS_EVENT_INIT           0x80    /* initial state of device */
 
-// Remove this when including into AGV package
-typedef enum { false = 0, true = !false} bool;
-
 struct js_event {
 	unsigned int time;	/* event timestamp in milliseconds */
 	short value;   /* value */
