@@ -6,7 +6,7 @@ CFLAGS = -g -Wall
 OBJECTS = joystick.o main.o
 INCFLAGS = 
 LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = 
+LIBS = -lpthread
 
 all: joystick
 

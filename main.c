@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
 					joystick_x, joystick_y, joystick_z, fire_pressed);
 		}
 	}
+	return(0);
 }
-
 
 /**
  * Joystick update function
@@ -113,9 +113,14 @@ void joystick_update ( void *ptr )
 {
     thdata *jdata;            
     jdata = (thdata *) ptr;  /* type cast to a pointer to thdata */
+
+	while(true)
+	{
+	
+		/* do the work */
+		printf("Thread %d says %s \n", jdata->thread_no, jdata->message);
+		sleep(1);
     
-    /* do the work */
-    printf("Thread %d says %s \n", jdata->thread_no, jdata->message);
-    
-    pthread_exit(0); /* exit */
+		//pthread_exit(0); /* exit */
+	}
 } 
