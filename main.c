@@ -26,24 +26,32 @@ typedef struct struct_thdata
 } thdata;
 
 /* Global variables for thread to access */
-int joystick_x;
-int joystick_y;
-int joystick_z;
+
+// Initialized by the joystick thread
+signed int joystick_x, joystick_y, joystick_z;
+// Threads kick my ass on this one
+signed int joy_x, joy_y, joy_z;
 bool fire_pressed = false;
 bool relevant = true;
 struct js_event jse;
 int rc;
+bool joystickControl = false;
+
 
 /* a little test program */
 int main(int argc, char *argv[])
 {
 	char buf[BUFSIZE];
+	char* param[3]; /*holds seperated values*/
 	
 	pthread_t joyThread;
 	thdata joyData; // this is a structure we can pass to the thread
 
 	int fd;
 	int done = 0;
+	int command; /*command type for agv*/
+	int comaddr; /*addr for command to go*/
+	int comval; /*value of command*/
 
 	/* initialize data to pass to thread 1 */
     joyData.thread_no = 1;
@@ -59,18 +67,54 @@ int main(int argc, char *argv[])
 
 	while (!done) {
 		/* get message line from the user */
-		printf("Please enter msg: ");
 		bzero(buf, BUFSIZE);
-		fgets(buf, BUFSIZE, stdin);
+		if (!joystickControl) {
+			printf("Please enter msg: ");
+			fgets(buf, BUFSIZE, stdin);
+		}
+		else {
+			usleep(250000);
+			if (relevant) {
+				joy_x = scale_joystick(joystick_x);
+				joy_y = -scale_joystick(joystick_y);
+				joy_z = scale_joystick(joystick_z);
+				sprintf(buf, "21 %d/%d/%d\n", joy_x, joy_y, joy_z);
+			}
+		}
+		printf("Message: %s\n", buf);
+
+		param[0] = strtok(buf, " ");
+		param[1] = strtok(NULL, " ");
+		param[2] = strtok(NULL, "\0");
+
+		// The command is always the first parameter
+		command = atoi(param[0]);
+
+		/*
+		 * This code is here to insure that we react properly to the
+		 * number of bytes sent. If a variable assignment is made
+		 * using a nul pointer, the program will segfault
+		 */
+		 // do we have a 2nd parameter (address)
+		if (param[1] != NULL)	{	
+			comaddr = atoi(param[1]);
+		}
+		// do we have a 3rd parameter (value)
+		if (param[2] != NULL)	{
+			comval = atoi(param[2]);
+		}
 
 		/*
 		 *Check to see if we're killing the client
 		 */
-		if(strcmp(buf, "99\n") == 0)
-		{
+		if (command == 99)
 			done = 1;
-  		}
-		
+
+		/* Are we under joystick control */
+		if (fire_pressed || command == 20) 
+			joystickControl = true;
+		else
+			joystickControl = false;
 	}
 	return(0);
 }
@@ -119,9 +163,9 @@ void joystick_update ( void *ptr )
 			else
 				relevant = false;
 				
-			if (relevant)
-				printf("X: %8hd, Y: %8hd, Z: %8hd, Fire: %d\n",
-					joystick_x, joystick_y, joystick_z, fire_pressed);
+			//if (relevant)
+				//printf("X: %8hd, Y: %8hd, Z: %8hd, Fire: %d\n",
+					//joystick_x, joystick_y, joystick_z, fire_pressed);
 		}   
 	}
 } 

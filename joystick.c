@@ -19,6 +19,7 @@
 
  */
 #include <stdio.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -106,6 +107,14 @@ void set_joystick_y_axis(int axis)
 void set_joystick_x_axis(int axis)
 {
 	joystick_x_axis = axis;
+}
+
+/* Scale the joystick to values liked by server,
+ * which are currently -100 to 100
+ */ 
+int scale_joystick(signed int value)
+{
+	return (signed int) ((long)(value * 200)/(long)65534);  
 }
 
 

@@ -4,14 +4,14 @@
 CC = gcc
 CFLAGS = -g -Wall
 OBJECTS = joystick.o main.o
-INCFLAGS = 
-LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = -lpthread
+INCFLAGS = -I/usr/local/include/SDL2
+LDFLAGS = -Wl,-rpath,-L/usr/local/lib
+LIBS = -lpthread -lSDL2
 
 all: joystick
 
 joystick: $(OBJECTS)
-	$(CC) -o joystick $(OBJECTS) $(LDFLAGS) $(LIBS)
+	$(CC) -o joystick $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 .SUFFIXES:
 .SUFFIXES:	.c .cc .C .cpp .o
