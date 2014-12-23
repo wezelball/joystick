@@ -25,24 +25,25 @@ typedef struct struct_thdata
     char message[100];
 } thdata;
 
+/* Global variables for thread to access */
+int joystick_x;
+int joystick_y;
+int joystick_z;
+bool fire_pressed = false;
+bool relevant = true;
+struct js_event jse;
+int rc;
+
 /* a little test program */
 int main(int argc, char *argv[])
 {
 	char buf[BUFSIZE];
-	int joystick_x;
-	int joystick_y;
-	int joystick_z;
-	bool fire_pressed = false;
+	
 	pthread_t joyThread;
 	thdata joyData; // this is a structure we can pass to the thread
 
-	// true only if an event we are using is activated
-	bool relevant = true;
-
-	int fd, rc;
+	int fd;
 	int done = 0;
-
-	struct js_event jse;
 
 	/* initialize data to pass to thread 1 */
     joyData.thread_no = 1;
@@ -69,38 +70,7 @@ int main(int argc, char *argv[])
 		{
 			done = 1;
   		}
-		rc = read_joystick_event(&jse);
-		usleep(1000);
-		if (rc == 1) {
-			//printf("Event: time %8u, value %8hd, type: %3u, axis/button: %u\n", 
-				//jse.time, jse.value, jse.type, jse.number);
-			if (jse.type == 2 && jse.number == 0) {
-				joystick_x = jse.value;
-				relevant = true;
-			}
-			else if (jse.type == 2 && jse.number == 1) {
-				joystick_y = jse.value;
-				relevant = true;
-			}
-			else if (jse.type == 2 && jse.number == 3) {
-				joystick_z = jse.value;
-				relevant = true;
-			}
-			else if (jse.value == 1 && jse.type == 1 && jse.number == 0) {
-				fire_pressed = true;
-				relevant = true;
-			}
-			else if (jse.value == 0 && jse.type == 1 && jse.number == 0) {
-				fire_pressed = false;
-				relevant = true;
-			}
-			else
-				relevant = false;
-				
-			if (relevant)
-				printf("X: %8hd, Y: %8hd, Z: %8hd, Fire: %d\n",
-					joystick_x, joystick_y, joystick_z, fire_pressed);
-		}
+		
 	}
 	return(0);
 }
@@ -114,13 +84,44 @@ void joystick_update ( void *ptr )
     thdata *jdata;            
     jdata = (thdata *) ptr;  /* type cast to a pointer to thdata */
 
+	
 	while(true)
 	{
-	
-		/* do the work */
-		printf("Thread %d says %s \n", jdata->thread_no, jdata->message);
-		sleep(1);
-    
-		//pthread_exit(0); /* exit */
+		rc = read_joystick_event(&jse);
+		usleep(1000);
+		if (rc == 1) {
+			//printf("Event: time %8u, value %8hd, type: %3u, axis/button: %u\n", 
+				//jse.time, jse.value, jse.type, jse.number);
+			if (jse.type == 2 && jse.number == 0) {
+				joystick_x = jse.value;
+				relevant = true;
+				//printf("X axis\n");
+			}
+			else if (jse.type == 2 && jse.number == 1) {
+				joystick_y = jse.value;
+				relevant = true;
+				//printf("Y axis\n");
+			}
+			else if (jse.type == 2 && jse.number == 3) {
+				joystick_z = jse.value;
+				relevant = true;
+				//printf("Z axis\n");
+			}
+			else if (jse.value == 1 && jse.type == 1 && jse.number == 0) {
+				fire_pressed = true;
+				relevant = true;
+				//printf("Fire button\n");
+			}
+			else if (jse.value == 0 && jse.type == 1 && jse.number == 0) {
+				fire_pressed = false;
+				relevant = true;
+			}
+			else
+				relevant = false;
+				
+			if (relevant)
+				printf("X: %8hd, Y: %8hd, Z: %8hd, Fire: %d\n",
+					joystick_x, joystick_y, joystick_z, fire_pressed);
+		}   
 	}
 } 
